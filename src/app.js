@@ -1,10 +1,17 @@
 import express from "express";
 import cors from "cors";
+import { MongoClient } from "mongodb";
 
 const app = express();
-
 app.use(cors());
 app.use(express.json());
+
+let db;
+const mongoClient = new MongoClient("mongodb://localhost:27017/");
+mongoClient
+  .connect()
+  .then(() => (db = mongoClient.db()))
+  .catch((err) => console.log(err));
 
 const participants = [];
 const messages = [];
