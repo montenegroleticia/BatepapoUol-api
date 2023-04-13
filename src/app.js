@@ -1,10 +1,12 @@
 import express from "express";
 import cors from "cors";
 import { MongoClient } from "mongodb";
+import dotenv from "dotenv";
 
 const app = express();
 app.use(cors());
 app.use(express.json());
+dotenv.config();
 
 let database;
 const mongoClient = new MongoClient(process.env.DATABASE_URL);
@@ -24,32 +26,31 @@ app.post("/participants", (req, res) => {
 
   database
     .collection("participants")
-    .findOne(name)
-    .then(() => res.sendStatus(201))
-    .catch((err) => res.status(500).send(err.message));
-
-  const findName = participants.filter((n) => n.name === name);
-  if (findName.length != 0) return res.status(409).send("Usuário já existe!");
-
-  database
-    .collection("participants")
-    .insertOne({ name: name, lastStatus: Date.now() })
-    .then(() => res.sendStatus(201))
-    .catch((err) => res.status(500).send(err.message));
-
-  database
-    .collection("messages")
-    .insertOne({
-      from: name,
-      to: "Todos",
-      text: "entra na sala...",
-      type: "status",
-      time: timeString,
+    .findOne({ name: name })
+    .then((participant) => {
+      if (participant) {
+        res.status(409).send("Usuário já existe!");
+      } else {
+        return database
+          .collection("participants")
+          .insertOne({ name: name, lastStatus: Date.now() })
+          .then(() => {
+            database
+              .collection("messages")
+              .insertOne({
+                from: name,
+                to: "Todos",
+                text: "entra na sala...",
+                type: "status",
+                time: timeString,
+              })
+              .then(() => res.sendStatus(201))
+              .catch((err) => res.status(500).send(err.message));
+          })
+          .catch((err) => res.status(500).send(err.message));
+      }
     })
-    .then(() => res.sendStatus(201))
     .catch((err) => res.status(500).send(err.message));
-
-  res.sendStatus(201);
 });
 
 app.get("/participants", (req, res) => {
@@ -61,7 +62,10 @@ app.get("/participants", (req, res) => {
     .catch((err) => res.status(500).send(err.message));
 });
 
-app.post("/messages", (req, res) => {});
+app.post("/messages", (req, res) => {
+  const { from } = req.headers;
+  const { to, text, type } = req.body;
+});
 
 app.get("/messages", (req, res) => {});
 
