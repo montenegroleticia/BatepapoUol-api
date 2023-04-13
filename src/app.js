@@ -63,13 +63,56 @@ app.get("/participants", (req, res) => {
 });
 
 app.post("/messages", (req, res) => {
-  const { from } = req.headers;
+  const { user } = req.headers;
   const { to, text, type } = req.body;
+
+  database
+    .collection("participants")
+    .findOne({ name: user })
+    .then(() => {
+      database
+        .collection("messages")
+        .insertOne({
+          from: user,
+          to: to,
+          text: text,
+          type: type,
+          time: timeString,
+        })
+        .then(() => res.sendStatus(201))
+        .catch((err) => res.status(500).send(err.message));
+    })
+    .catch((err) => res.status(500).send(err.message));
 });
 
-app.get("/messages", (req, res) => {});
+app.get("/messages", (req, res) => {
+  const { user } = req.headers;
+  const { limit } = req.query;
 
-app.post("/status", (req, res) => {});
+  if (limit && limit < 1) {
+    res.status(422).send("Informe uma página válida!");
+    return;
+  }
+});
+
+app.post("/status", (req, res) => {
+  const { user } = req.headers;
+
+  database
+    .collection("participants")
+    .findOneAndUpdate(
+      { name: user },
+      { $set: { lastStatus: Date.now() } }
+      )
+    .then((participant) => {
+      if (participant.value){
+        res.sendStatus(200);
+      } else {
+        res.sendStatus(404);
+      }
+    })
+    .catch((err) => res.status(500).send(err.message));
+});
 
 const PORT = 5000;
 app.listen(PORT, () => console.log(`Rodando servidor na porta ${PORT}`));
