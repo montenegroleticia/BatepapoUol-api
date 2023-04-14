@@ -156,9 +156,9 @@ app.post("/status", (req, res) => {
       }
     })
     .catch((err) => res.status(500).send(err.message));
+
+    setInterval(removeInactiveParticipants, 15000);
 });
 
 const PORT = 5000;
 app.listen(PORT, () => console.log(`Rodando servidor na porta ${PORT}`));
-
-setInterval(removeInactiveParticipants, 15000);
