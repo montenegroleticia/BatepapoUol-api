@@ -134,12 +134,21 @@ app.get("/messages", (req, res) => {
   const query = { $or: [{ to: user }, { to: "todos" }], type: "message" };
   const options = { sort: { time: -1 }, limit: limit ? parseInt(limit) : 100 };
 
-  database
-    .collection("messages")
-    .find(query, options)
-    .toArray()
-    .then((messages) => res.send(messages.reverse()))
-    .catch((err) => res.status(500).send(err.message));
+  if (limit) {
+    database
+      .collection("messages")
+      .find(query, options)
+      .toArray()
+      .then((messages) => res.send(messages.reverse()))
+      .catch((err) => res.status(500).send(err.message));
+  } else {
+    database
+      .collection("messages")
+      .find()
+      .toArray()
+      .then((messages) => res.send(messages.reverse()))
+      .catch((err) => res.status(500).send(err.message));
+  }
 });
 
 app.post("/status", (req, res) => {
@@ -157,7 +166,7 @@ app.post("/status", (req, res) => {
     })
     .catch((err) => res.status(500).send(err.message));
 
-    setInterval(removeInactiveParticipants, 15000);
+  setInterval(removeInactiveParticipants, 15000);
 });
 
 const PORT = 5000;
