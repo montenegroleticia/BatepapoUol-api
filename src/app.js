@@ -23,7 +23,7 @@ const timeString = `${hours}:${minutes}:${seconds}`;
 
 function removeInactiveParticipants() {
   const inactiveTime = 10000;
-  const query = { lastStatus: { $lt: database.now() - inactiveTime } };
+  const query = { lastStatus: { $lt: Date.now() - inactiveTime } };
 
   database
     .collection("participants")
