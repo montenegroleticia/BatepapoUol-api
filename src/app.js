@@ -31,21 +31,25 @@ setInterval(async () => {
     .toArray()
     .then((participants) => {
       const names = participants.map((p) => p.name);
-      if (names.length > 0) {
-        const messages = names.map((name) => ({
-          from: name,
-          to: "Todos",
-          text: "sai da sala...",
-          type: "status",
-          time: timeString,
-        }));
-        return database.collection("messages").insertMany(messages);
-      }
+      return database
+        .collection("participants")
+        .deleteMany(query)
+        .then(() => names);
+    })
+    .then((names) => {
+      const messages = names.map((name) => ({
+        from: name,
+        to: "Todos",
+        text: "sai da sala...",
+        type: "status",
+        time: timeString,
+      }));
+      return database.collection("messages").insertMany(messages);
     })
     .catch((err) => {
       console.log(err.message);
     });
-}, 15000);
+}, 15000)
 
 app.post("/participants", (req, res) => {
   const { name } = req.body;
