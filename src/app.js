@@ -47,7 +47,7 @@ function removeInactiveParticipants() {
       return database.collection("messages").insertMany(messages);
     })
     .catch((err) => {
-      res.status(500).send(err.message);
+      console.log(err.message);
     });
 }
 
