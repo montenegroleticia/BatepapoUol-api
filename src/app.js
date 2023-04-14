@@ -21,7 +21,7 @@ const minutes = now.getMinutes().toString().padStart(2, "0");
 const seconds = now.getSeconds().toString().padStart(2, "0");
 const timeString = `${hours}:${minutes}:${seconds}`;
 
-function removeInactiveParticipants() {
+setInterval(async () => {
   const inactiveTime = 10000;
   const query = { lastStatus: { $lt: Date.now() - inactiveTime } };
 
@@ -31,25 +31,21 @@ function removeInactiveParticipants() {
     .toArray()
     .then((participants) => {
       const names = participants.map((p) => p.name);
-      return database
-        .collection("participants")
-        .deleteMany(query)
-        .then(() => names);
-    })
-    .then((names) => {
-      const messages = names.map((name) => ({
-        from: name,
-        to: "Todos",
-        text: "sai da sala...",
-        type: "status",
-        time: timeString,
-      }));
-      return database.collection("messages").insertMany(messages);
+      if (names.length > 0) {
+        const messages = names.map((name) => ({
+          from: name,
+          to: "Todos",
+          text: "sai da sala...",
+          type: "status",
+          time: timeString,
+        }));
+        return database.collection("messages").insertMany(messages);
+      }
     })
     .catch((err) => {
       console.log(err.message);
     });
-}
+}, 15000);
 
 app.post("/participants", (req, res) => {
   const { name } = req.body;
@@ -169,5 +165,3 @@ app.post("/status", (req, res) => {
 
 const PORT = 5000;
 app.listen(PORT, () => console.log(`Rodando servidor na porta ${PORT}`));
-
-setInterval(removeInactiveParticipants, 15000);
