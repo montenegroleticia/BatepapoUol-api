@@ -49,7 +49,7 @@ setInterval(async () => {
     .catch((err) => {
       console.log(err.message);
     });
-}, 15000)
+}, 15000);
 
 app.post("/participants", (req, res) => {
   const { name } = req.body;
@@ -124,12 +124,7 @@ app.get("/messages", (req, res) => {
   }
 
   const query = {
-    $or: [
-      { to: user },
-      { from: user },
-      { to: "Todos" },
-      { private: false },
-    ],
+    $or: [{ to: user }, { from: user }, { to: "Todos" }, { private: false }],
   };
 
   if (!limit) {
@@ -164,7 +159,6 @@ app.post("/status", (req, res) => {
       }
     })
     .catch((err) => res.status(500).send(err.message));
-
 });
 
 const PORT = 5000;
