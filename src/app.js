@@ -30,7 +30,7 @@ function removeInactiveParticipants() {
     .find(query, { projection: { name: 1 } })
     .toArray()
     .then((participants) => {
-      if (!names.length) {
+      if (!participants.length) {
         const names = participants.map((p) => p.name);
         return database
           .collection("participants")
