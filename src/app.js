@@ -21,6 +21,36 @@ const minutes = now.getMinutes().toString().padStart(2, "0");
 const seconds = now.getSeconds().toString().padStart(2, "0");
 const timeString = `${hours}:${minutes}:${seconds}`;
 
+function removeInactiveParticipants() {
+  const inactiveTime = 10000;
+  const query = { lastStatus: { $l: database.now() - inactiveTime } };
+
+  database
+    .collection("participants")
+    .find(query, { projection: { name: 1 } })
+    .toArray()
+    .then((participants) => {
+      const names = participants.map((p) => p.name);
+      return database
+        .collection("participants")
+        .deleteMany(query)
+        .then(() => names);
+    })
+    .then((names) => {
+      const messages = names.map((name) => ({
+        from: name,
+        to: "Todos",
+        text: "sai da sala...",
+        type: "status",
+        time: timeString,
+      }));
+      return database.collection("messages").insertMany(messages);
+    })
+    .catch((err) => {
+      console.error("Erro ao remover participantes inativos:", err.message);
+    });
+}
+
 app.post("/participants", (req, res) => {
   const { name } = req.body;
 
@@ -90,8 +120,7 @@ app.get("/messages", (req, res) => {
   const { limit } = req.query;
 
   if (limit && limit < 1) {
-    res.status(422).send("Informe uma página válida!");
-    return;
+    return res.status(422).send("Informe uma página válida!");
   }
 });
 
@@ -100,12 +129,9 @@ app.post("/status", (req, res) => {
 
   database
     .collection("participants")
-    .findOneAndUpdate(
-      { name: user },
-      { $set: { lastStatus: Date.now() } }
-      )
+    .findOneAndUpdate({ name: user }, { $set: { lastStatus: Date.now() } })
     .then((participant) => {
-      if (participant.value){
+      if (participant.value) {
         res.sendStatus(200);
       } else {
         res.sendStatus(404);
@@ -116,3 +142,5 @@ app.post("/status", (req, res) => {
 
 const PORT = 5000;
 app.listen(PORT, () => console.log(`Rodando servidor na porta ${PORT}`));
+
+setInterval(removeInactiveParticipants, 15000);
