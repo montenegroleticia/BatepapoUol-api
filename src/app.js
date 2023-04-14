@@ -23,7 +23,7 @@ const timeString = `${hours}:${minutes}:${seconds}`;
 
 function removeInactiveParticipants() {
   const inactiveTime = 10000;
-  const query = { lastStatus: { $l: database.now() - inactiveTime } };
+  const query = { lastStatus: { $lt: database.now() - inactiveTime } };
 
   database
     .collection("participants")
@@ -47,7 +47,7 @@ function removeInactiveParticipants() {
       return database.collection("messages").insertMany(messages);
     })
     .catch((err) => {
-      console.error("Erro ao remover participantes inativos:", err.message);
+      res.status(500).send(err.message);
     });
 }
 
@@ -122,6 +122,16 @@ app.get("/messages", (req, res) => {
   if (limit && limit < 1) {
     return res.status(422).send("Informe uma página válida!");
   }
+
+  const query = { $or: [{ to: user }, { to: "todos" }], type: "message" };
+  const options = { sort: { time: -1 }, limit: limit ? parseInt(limit) : 100 };
+
+  database
+    .collection("messages")
+    .find(query, options)
+    .toArray()
+    .then((messages) => res.send(messages.reverse()))
+    .catch((err) => res.status(500).send(err.message));
 });
 
 app.post("/status", (req, res) => {
