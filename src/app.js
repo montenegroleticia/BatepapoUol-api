@@ -30,29 +30,21 @@ function removeInactiveParticipants() {
     .find(query, { projection: { name: 1 } })
     .toArray()
     .then((participants) => {
-      if (!participants.length) {
-        const names = participants.map((p) => p.name);
-        return database
-          .collection("participants")
-          .deleteMany(query)
-          .then(() => names);
-      } else {
-        return;
-      }
+      const names = participants.map((p) => p.name);
+      return database
+        .collection("participants")
+        .deleteMany(query)
+        .then(() => names);
     })
     .then((names) => {
-      if (!names.length) {
-        const messages = names.map((name) => ({
-          from: name,
-          to: "Todos",
-          text: "sai da sala...",
-          type: "status",
-          time: timeString,
-        }));
-        return database.collection("messages").insertMany(messages);
-      } else {
-        return;
-      }
+      const messages = names.map((name) => ({
+        from: name,
+        to: "Todos",
+        text: "sai da sala...",
+        type: "status",
+        time: timeString,
+      }));
+      return database.collection("messages").insertMany(messages);
     })
     .catch((err) => {
       console.log(err.message);
