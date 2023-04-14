@@ -123,27 +123,27 @@ app.get("/messages", (req, res) => {
     return res.status(422).send("Informe uma página válida!");
   }
 
-  const filters = {
+  const query = {
     $or: [
       { to: user },
-      { to: "todos" },
-      { from: user, to: { $ne: user } },
+      { from: user },
+      { to: "Todos" },
+      { private: false },
     ],
-    type: { $in: ["message", "private_message"], $ne: "status" },
   };
-  const options = { sort: { time: -1 }, limit: parseInt(limit) || 0 };
 
-  if (limit) {
+  if (!limit) {
     database
       .collection("messages")
-      .find(filters, options)
+      .find(query)
       .toArray()
       .then((messages) => res.send(messages.reverse()))
       .catch((err) => res.status(500).send(err.message));
   } else {
     database
       .collection("messages")
-      .find()
+      .find(query)
+      .limit(parseInt(limit))
       .toArray()
       .then((messages) => res.send(messages.reverse()))
       .catch((err) => res.status(500).send(err.message));
