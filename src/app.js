@@ -41,14 +41,18 @@ function removeInactiveParticipants() {
       }
     })
     .then((names) => {
-      const messages = names.map((name) => ({
-        from: name,
-        to: "Todos",
-        text: "sai da sala...",
-        type: "status",
-        time: timeString,
-      }));
-      return database.collection("messages").insertMany(messages);
+      if (!names.length) {
+        const messages = names.map((name) => ({
+          from: name,
+          to: "Todos",
+          text: "sai da sala...",
+          type: "status",
+          time: timeString,
+        }));
+        return database.collection("messages").insertMany(messages);
+      } else {
+        return;
+      }
     })
     .catch((err) => {
       console.log(err.message);
