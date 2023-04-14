@@ -123,13 +123,20 @@ app.get("/messages", (req, res) => {
     return res.status(422).send("Informe uma página válida!");
   }
 
-  const query = { $or: [{ to: user }, { to: "todos" }], type: "message" };
-  const options = { sort: { time: -1 }, limit: limit ? parseInt(limit) : 100 };
+  const filters = {
+    $or: [
+      { to: user },
+      { to: "todos" },
+      { from: user, to: { $ne: user } },
+    ],
+    type: { $in: ["message", "private_message"], $ne: "status" },
+  };
+  const options = { sort: { time: -1 }, limit: parseInt(limit) || 0 };
 
   if (limit) {
     database
       .collection("messages")
-      .find(query, options)
+      .find(filters, options)
       .toArray()
       .then((messages) => res.send(messages.reverse()))
       .catch((err) => res.status(500).send(err.message));
