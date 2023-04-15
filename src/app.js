@@ -107,9 +107,9 @@ app.post("/messages", (req, res) => {
     type: joi.string().valid("message", "private_message").required(),
   });
 
-  const validate = messageSchema.validate(req.body, {abortEarly: false});
+  const validate = messageSchema.validate(req.body, { abortEarly: false });
   if (validate.error) {
-    const errors = validate.error.details.map(detail => detail.message);
+    const errors = validate.error.details.map((detail) => detail.message);
     return res.status(422).send(errors);
   }
 
