@@ -116,7 +116,8 @@ app.post("/messages", (req, res) => {
   database
     .collection("participants")
     .findOne({ name: user })
-    .then(() => {
+    .then((participant) => {
+      if (!participant) return res.status(422).send("Usuário não encontrado");
       database
         .collection("messages")
         .insertOne({
