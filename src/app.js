@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors";
 import { MongoClient } from "mongodb";
 import dotenv from "dotenv";
+import joi from "joi";
 
 const app = express();
 app.use(cors());
@@ -51,6 +52,12 @@ setInterval(() => {
 
 app.post("/participants", (req, res) => {
   const { name } = req.body;
+
+  const nameSchema = joi.object({
+    name: joi.string().required()
+  })
+  const validate = nameSchema.validate(req.body)
+  if (validate.error) return res.sendStatus(422);
 
   database
     .collection("participants")
