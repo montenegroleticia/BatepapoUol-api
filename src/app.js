@@ -21,7 +21,7 @@ const minutes = now.getMinutes().toString().padStart(2, "0");
 const seconds = now.getSeconds().toString().padStart(2, "0");
 const timeString = `${hours}:${minutes}:${seconds}`;
 
-setInterval(async () => {
+setInterval(() => {
   const inactiveTime = 10000;
   const query = { lastStatus: { $lt: Date.now() - inactiveTime } };
 
@@ -30,13 +30,8 @@ setInterval(async () => {
     .find(query, { projection: { name: 1 } })
     .toArray()
     .then((participants) => {
+      if (participants.length < 1) return
       const names = participants.map((p) => p.name);
-      return database
-        .collection("participants")
-        .deleteMany(query)
-        .then(() => names);
-    })
-    .then((names) => {
       const messages = names.map((name) => ({
         from: name,
         to: "Todos",
@@ -44,7 +39,10 @@ setInterval(async () => {
         type: "status",
         time: timeString,
       }));
-      return database.collection("messages").insertMany(messages);
+      return Promise.all([
+        database.collection("participants").deleteMany(query),
+        database.collection("messages").insertMany(messages),
+      ]);
     })
     .catch((err) => {
       console.log(err.message);
@@ -119,9 +117,7 @@ app.get("/messages", (req, res) => {
   const { user } = req.headers;
   const { limit } = req.query;
 
-  if (limit && limit < 1) {
-    return res.status(422).send("Informe uma página válida!");
-  }
+  if (limit && limit < 1) return res.status(422).send("Informe uma página válida!");
 
   const query = {
     $or: [{ to: user }, { from: user }, { to: "Todos" }, { private: false }],
@@ -152,11 +148,8 @@ app.post("/status", (req, res) => {
     .collection("participants")
     .findOneAndUpdate({ name: user }, { $set: { lastStatus: Date.now() } })
     .then((participant) => {
-      if (participant.value) {
-        res.sendStatus(200);
-      } else {
-        res.sendStatus(404);
-      }
+      if (participant.value) return res.sendStatus(200);
+      res.sendStatus(404);
     })
     .catch((err) => res.status(500).send(err.message));
 });
