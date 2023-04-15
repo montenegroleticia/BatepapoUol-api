@@ -31,7 +31,7 @@ setInterval(() => {
     .find(query, { projection: { name: 1 } })
     .toArray()
     .then((participants) => {
-      if (participants.length < 1) return
+      if (participants.length < 1) return;
       const names = participants.map((p) => p.name);
       const messages = names.map((name) => ({
         from: name,
@@ -54,9 +54,9 @@ app.post("/participants", (req, res) => {
   const { name } = req.body;
 
   const nameSchema = joi.object({
-    name: joi.string().required()
-  })
-  const validate = nameSchema.validate(req.body)
+    name: joi.string().required(),
+  });
+  const validate = nameSchema.validate(req.body);
   if (validate.error) return res.sendStatus(422);
 
   database
@@ -101,6 +101,18 @@ app.post("/messages", (req, res) => {
   const { user } = req.headers;
   const { to, text, type } = req.body;
 
+  const messageSchema = joi.object({
+    to: joi.string().required(),
+    text: joi.string().required(),
+    type: joi.string().valid("message", "private_message").required(),
+  });
+
+  const validate = messageSchema.validate(req.body, {abortEarly: false});
+  if (validate.error) {
+    const errors = validate.error.details.map(detail => detail.message);
+    return res.status(422).send(errors);
+  }
+
   database
     .collection("participants")
     .findOne({ name: user })
@@ -117,7 +129,7 @@ app.post("/messages", (req, res) => {
         .then(() => res.sendStatus(201))
         .catch((err) => res.status(500).send(err.message));
     })
-    .catch((err) => res.status(500).send(err.message));
+    .catch((err) => res.status(422).send(err.message));
 });
 
 app.get("/messages", (req, res) => {
@@ -144,7 +156,7 @@ app.get("/messages", (req, res) => {
       .limit(parseInt(limit))
       .toArray()
       .then((messages) => res.send(messages.reverse()))
-      .catch((err) => res.status(500).send(err.message));
+      .catch((err) => res.status(422).send(err.message));
   }
 });
 
