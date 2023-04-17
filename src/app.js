@@ -183,7 +183,7 @@ app.delete("/messages/:id", (req, res) => {
     .collection("messages")
     .findOne({ _id: new ObjectId(id) })
     .then((message) => {
-      if (message.name !== user) return res.sendStatus(401);
+      //if (message.from !== user) return res.sendStatus(401);
       database
         .collection("messages")
         .deleteOne({ _id: new ObjectId(id) }, { name: user })
@@ -214,11 +214,11 @@ app.put("/messages/:id", (req, res) => {
     .collection("messages")
     .findOne({ _id: new ObjectId(id) })
     .then((message) => {
-      if (message.name !== user) return res.sendStatus(401);
+      //if (message.from != user) return res.sendStatus(401);
       database
         .collection("messages")
         .findOneAndUpdate(
-          { name: user },
+          { from: user },
           { $set: { to: to, text: text, type: type } }
         )
         .then((message) => {
