@@ -178,7 +178,7 @@ app.post("/status", (req, res) => {
 app.delete("/messages/:id", (req, res) => {
   const { user } = req.headers;
   const { id } = req.params;
-/*
+
   database
     .collection("messages")
     .findOne({ _id: new ObjectId(id) }, { name: user })
@@ -190,24 +190,8 @@ app.delete("/messages/:id", (req, res) => {
         .catch(() => res.sendStatus(500))
     )
     .catch((message) => {
-      if (!message) return res.sendStatus(404);
       if (message.name !== user) return res.sendStatus(401);
     });
-*/
-    database
-    .collection("messages")
-    .findOne({ _id: new ObjectId(id) }, { projection: { name: 1 } })
-    .then((message) => {
-      if (!message) return res.sendStatus(404);
-      if (message.name !== user) return res.sendStatus(401);
-
-      database
-        .collection("messages")
-        .deleteOne({ _id: new ObjectId(id) })
-        .then(() => res.status(200).send("Item deletado!"))
-        .catch(() => res.sendStatus(500));
-    })
-    .catch(() => res.sendStatus(500));
 });
 
 app.put("/messages/:id", (req, res) => {
@@ -226,6 +210,22 @@ app.put("/messages/:id", (req, res) => {
     const errors = validate.error.details.map((detail) => detail.message);
     return res.status(422).send(errors);
   }
+
+  database
+    .collection("messages")
+    .findOne({ _id: new ObjectId(id) })
+    .then((message) => {
+      if (message.name !== user) return res.sendStatus(401);
+      database
+        .collection("messages")
+        .findOneAndUpdate({ name: user }, { $set: { to: to, text: text, type: type} })
+        .then((message) => {
+          if (message.value) return res.sendStatus(200);
+          res.sendStatus(404);
+        })
+        .catch((err) => res.status(500).send(err.message));
+    })
+    .catch(() => res.sendStatus(404));
 });
 
 const PORT = 5000;
