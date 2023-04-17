@@ -137,8 +137,9 @@ app.get("/messages", (req, res) => {
   const { user } = req.headers;
   const { limit } = req.query;
 
-  if (limit && limit < 1) return res.status(422).send("Informe uma página válida!");
-
+  if (limit && limit < 1) {
+    return res.status(422).send("Informe uma página válida!");
+  }
   const query = {
     $or: [{ to: user }, { from: user }, { to: "Todos" }, { private: false }],
   };
@@ -178,10 +179,12 @@ app.delete("/messages/:id", (req, res) => {
   const { user } = req.headers;
   const { id } = req.params;
 
-  const idMessage = database.collection("messages").find( { _id: new ObjectId(id) } );
+  const idMessage = database
+    .collection("messages")
+    .findOne({ _id: new ObjectId(id) });
   if (!idMessage) return res.sendStatus(404);
 
-  const userMessage = database.collection("messages").find({name: user});
+  const userMessage = database.collection("messages").findOne({ name: user });
   if (!userMessage) return res.sendStatus(401);
 
   database
