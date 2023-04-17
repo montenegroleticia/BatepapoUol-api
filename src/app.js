@@ -181,16 +181,17 @@ app.delete("/messages/:id", (req, res) => {
 
   database
     .collection("messages")
-    .findOne({ _id: new ObjectId(id) }, { name: user })
-    .then(
+    .findOne({ _id: new ObjectId(id) })
+    .then((message) => {
+      if (message.name !== user) return res.sendStatus(401);
       database
         .collection("messages")
         .deleteOne({ _id: new ObjectId(id) }, { name: user })
         .then(() => res.status(200).send("Ítem deletado!"))
         .catch(() => res.sendStatus(500))
-    )
-    .catch((message) => {
-      if (message.name !== user) return res.sendStatus(401);
+})
+    .catch(() => {
+      res.sendStatus(404);
     });
 });
 
