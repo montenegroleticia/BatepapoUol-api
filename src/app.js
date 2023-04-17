@@ -178,23 +178,33 @@ app.post("/status", (req, res) => {
 app.delete("/messages/:id", (req, res) => {
   const { user } = req.headers;
   const { id } = req.params;
-
-  database
-        .collection("messages")
-        .findOne({ _id: new ObjectId(id) }, { name: user })
-        .then(() => res.sendStatus(200))
-        .catch(() => res.sendStatus(404));
-
+/*
   database
     .collection("messages")
-    .findOne({ _id: new ObjectId(id) })
-    .then((message) => {
-      if (!message) return res.sendStatus(404);
-      if (message.name !== user) return res.sendStatus(401);
+    .findOne({ _id: new ObjectId(id) }, { name: user })
+    .then(
       database
         .collection("messages")
         .deleteOne({ _id: new ObjectId(id) }, { name: user })
-        .then(() => res.send("Ítem deletado!"))
+        .then(() => res.status(200).send("Ítem deletado!"))
+        .catch(() => res.sendStatus(500))
+    )
+    .catch((message) => {
+      if (!message) return res.sendStatus(404);
+      if (message.name !== user) return res.sendStatus(401);
+    });
+*/
+    database
+    .collection("messages")
+    .findOne({ _id: new ObjectId(id) }, { projection: { name: 1 } })
+    .then((message) => {
+      if (!message) return res.sendStatus(404);
+      if (message.name !== user) return res.sendStatus(401);
+
+      database
+        .collection("messages")
+        .deleteOne({ _id: new ObjectId(id) })
+        .then(() => res.status(200).send("Item deletado!"))
         .catch(() => res.sendStatus(500));
     })
     .catch(() => res.sendStatus(500));
@@ -203,6 +213,7 @@ app.delete("/messages/:id", (req, res) => {
 app.put("/messages/:id", (req, res) => {
   const { user } = req.headers;
   const { to, text, type } = req.body;
+  const { id } = req.params;
 
   const messageSchema = joi.object({
     to: joi.string().required(),
