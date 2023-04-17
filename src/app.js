@@ -1,6 +1,6 @@
 import express from "express";
 import cors from "cors";
-import { MongoClient } from "mongodb";
+import { MongoClient, ObjectId } from "mongodb";
 import dotenv from "dotenv";
 import joi from "joi";
 
@@ -172,6 +172,17 @@ app.post("/status", (req, res) => {
       res.sendStatus(404);
     })
     .catch((err) => res.status(500).send(err.message));
+});
+
+app.delete("/messages/:id", (req, res) => {
+  const { user } = req.headers;
+  const { id } = req.params;
+
+  database
+    .collection("messages")
+    .deleteOne({ _id: new ObjectId(id) }, { name: user })
+    .then(() => res.send("Ítem deletado!"))
+    .catch(() => res.sendStatus(404));
 });
 
 const PORT = 5000;
