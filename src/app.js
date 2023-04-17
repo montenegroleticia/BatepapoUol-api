@@ -222,7 +222,7 @@ app.put("/messages/:id", (req, res) => {
           { $set: { to: to, text: text, type: type } }
         )
         .then(() => res.sendStatus(200))
-        .catch(() => resendStatus(404));
+        .catch(() => res.sendStatus(404));
     })
     .catch(() => res.sendStatus(404));
 });
