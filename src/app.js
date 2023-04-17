@@ -178,6 +178,12 @@ app.delete("/messages/:id", (req, res) => {
   const { user } = req.headers;
   const { id } = req.params;
 
+  const idMessage = database.collection("messages").find( { _id: new ObjectId(id) } );
+  if (!idMessage) return res.sendStatus(404);
+
+  const userMessage = database.collection("messages").find({name: user});
+  if (!userMessage) return res.sendStatus(401);
+
   database
     .collection("messages")
     .deleteOne({ _id: new ObjectId(id) }, { name: user })
