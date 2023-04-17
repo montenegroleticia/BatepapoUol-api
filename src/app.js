@@ -168,10 +168,7 @@ app.post("/status", (req, res) => {
   database
     .collection("participants")
     .findOneAndUpdate({ name: user }, { $set: { lastStatus: Date.now() } })
-    .then((participant) => {
-      if (participant.value) return res.sendStatus(200);
-      res.sendStatus(404);
-    })
+    .then(() => res.sendStatus(200))
     .catch((err) => res.status(500).send(err.message));
 });
 
@@ -183,12 +180,12 @@ app.delete("/messages/:id", (req, res) => {
     .collection("messages")
     .findOne({ _id: new ObjectId(id) })
     .then((message) => {
-      //if (message.from !== user) return res.sendStatus(401);
+      if (message.from !== user) return res.sendStatus(401);
       database
         .collection("messages")
         .deleteOne({ _id: new ObjectId(id) }, { name: user })
         .then(() => res.status(200).send("Ítem deletado!"))
-        .catch(() => res.sendStatus(500));
+        .catch(() => res.sendStatus(404));
     })
     .catch(() => res.sendStatus(404));
 });
@@ -214,18 +211,15 @@ app.put("/messages/:id", (req, res) => {
     .collection("messages")
     .findOne({ _id: new ObjectId(id) })
     .then((message) => {
-      //if (message.from != user) return res.sendStatus(401);
+      if (message.from !== user) return res.sendStatus(401);
       database
         .collection("messages")
         .findOneAndUpdate(
           { from: user },
           { $set: { to: to, text: text, type: type } }
         )
-        .then((message) => {
-          if (message.value) return res.sendStatus(200);
-          res.sendStatus(404);
-        })
-        .catch((err) => res.status(500).send(err.message));
+        .then(() => res.sendStatus(200))
+        .catch(() => ressendStatus(404));
     })
     .catch(() => res.sendStatus(404));
 });
