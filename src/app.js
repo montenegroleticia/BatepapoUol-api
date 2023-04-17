@@ -168,7 +168,10 @@ app.post("/status", (req, res) => {
   database
     .collection("participants")
     .findOneAndUpdate({ name: user }, { $set: { lastStatus: Date.now() } })
-    .then(() => res.sendStatus(200))
+    .then((participant) => {
+      if (participant.value) return res.sendStatus(200);
+      res.sendStatus(404);
+    })
     .catch((err) => res.status(500).send(err.message));
 });
 
@@ -180,7 +183,7 @@ app.delete("/messages/:id", (req, res) => {
     .collection("messages")
     .findOne({ _id: new ObjectId(id) })
     .then((message) => {
-      if (message.from !== user) return res.sendStatus(401);
+      //if (message.from !== user) return res.sendStatus(401);
       database
         .collection("messages")
         .deleteOne({ _id: new ObjectId(id) }, { name: user })
